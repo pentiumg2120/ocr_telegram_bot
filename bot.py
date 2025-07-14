@@ -1,17 +1,18 @@
-import base64
 import logging
 import asyncio
-import config as cf
+import config
 
 from aiogram import Bot, Dispatcher, types, F
 from aiogram.filters import CommandStart
 from aiogram.client.default import DefaultBotProperties
 from aiogram.enums.parse_mode import ParseMode
 
+from cloud import photo_to_text
+
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-bot = Bot(cf.BOT_TOKEN, default=DefaultBotProperties(parse_mode=ParseMode.HTML))
+bot = Bot(config.BOT_TOKEN, default=DefaultBotProperties(parse_mode=ParseMode.HTML))
 dp = Dispatcher()
 
 
@@ -27,8 +28,8 @@ async def get_photo(message: types.Message):
     photo_id = message.photo[-1].file_id
     photo = await bot.get_file(photo_id)
     file = await bot.download_file(photo.file_path)
-    encode_file = base64.b64encode(file.getvalue()).decode('utf-8')
-    print(encode_file)
+    text_from_photo = await photo_to_text(file.getvalue())
+    await message.reply(text=text_from_photo, parse_mode=None)
 
 
 async def main():
